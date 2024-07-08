@@ -70,7 +70,7 @@ class Register:
 
     def register(self):
         # Get email and password entered by the user
-        name= self.entry_name.get()
+        name = self.entry_name.get()
         surname = self.entry_surname.get()
         email = self.entry_email.get()
         password = self.entry_password.get()
@@ -129,18 +129,6 @@ class Login:
         self.btn_register = tk.Button(root, text="Register", font=btn_font_style, command=self.open_register_form, width=20)
         self.btn_register.pack(pady=(0, 10))
 
-    #     register = tk.Button(root, text="Do not have an account?", cursor="hand2", bd=0, font=("Goudy old style", 12), fg="#6162FF", bg="white", command=self.open_register_page)
-    #     register.place(x=90, y=300)
-
-    # def open_register_page(self):
-    #     # Close the current window
-    #     self.root.destroy()
-
-    #     register_root = Tk()
-    #     register_obj = Register(register_root)
-    #     register_root.mainloop()
-
-
     def login(self):
         # Get email and password entered by the user
         email = self.entry_email.get()
@@ -171,13 +159,11 @@ class Login:
 
         # If no matching email is found, show an error message
         if not email_exists:
-            messagebox.showerror("Error", "Incorrect email")
-        # If no matching credentials are found, show an error message
-        messagebox.showerror("Error", "Invalid email or password")
-
+            messagebox.showerror("Error", "Invalid email or password")
+        
     def open_bank_application(self):
-        self.root.destroy()  # Close the login window
-        bank_app = BankApplication()  # Open the banking application
+        self.root.withdraw()  # Hide the login window
+        bank_app = BankApplication(self)  # Open the banking application
         bank_app.mainloop()
 
     def open_register_form(self):
@@ -189,14 +175,10 @@ class Login:
     def show_login(self):
         self.root.deiconify()  # Show the login form
 
-if __name__ == "__main__":
-    root = tk.Tk()
-    login_form = Login(root)
-    root.mainloop()
-
 class BankApplication(tk.Tk):
-    def __init__(self):
+    def __init__(self, login_form):
         super().__init__()
+        self.login_form = login_form
         self.title("Bank Application")
         self.geometry("400x200")
         self.resizable(False, False)
@@ -218,26 +200,26 @@ class BankApplication(tk.Tk):
         response = messagebox.askquestion("Transaction", "Would you like to make a transaction?")
         if response == "yes":
             transaction_type = simpledialog.askstring("Transaction Type", "Would you like to make a deposit or withdrawal?")
-        if transaction_type is not None:
-            transaction_type = transaction_type.lower()  # Convert to lowercase for consistent comparison
-            if transaction_type == "deposit":
-                amount = simpledialog.askfloat("Deposit Amount", "How much would you like to deposit?")
-                if amount is not None and amount > 0:
-                    self.make_deposit(amount)
-                    self.write_transaction_to_file("deposit", amount)
+            if transaction_type is not None:
+                transaction_type = transaction_type.lower()  # Convert to lowercase for consistent comparison
+                if transaction_type == "deposit":
+                    amount = simpledialog.askfloat("Deposit Amount", "How much would you like to deposit?")
+                    if amount is not None and amount > 0:
+                        self.make_deposit(amount)
+                        self.write_transaction_to_file("deposit", amount)
+                    else:
+                        messagebox.showerror("Error", "You provided an invalid input.")
+                elif transaction_type == "withdrawal":
+                    amount = simpledialog.askfloat("Withdrawal Amount", "How much would you like to withdraw?")
+                    if amount is not None and amount > 0:
+                        self.make_withdrawal(amount)
+                        self.write_transaction_to_file("withdrawal", amount)
+                    else:
+                        messagebox.showerror("Error", "You provided an invalid input.")
                 else:
-                    messagebox.showerror("Error", "You provided an invalid input.")
-            elif transaction_type == "withdrawal":
-                amount = simpledialog.askfloat("Withdrawal Amount", "How much would you like to withdraw?")
-                if amount is not None and amount > 0:
-                    self.make_withdrawal(amount)
-                    self.write_transaction_to_file("withdrawal", amount)
-                else:
-                    messagebox.showerror("Error", "You provided an invalid input.")
+                    messagebox.showerror("Transaction", "Invalid transaction type.")
             else:
                 messagebox.showerror("Transaction", "No transaction made.")
-        else:
-            messagebox.showerror("Transaction", "No transaction made.")
 
     def make_deposit(self, amount):
         self.balance += amount
@@ -253,33 +235,21 @@ class BankApplication(tk.Tk):
             self.write_transaction_to_file("Withdrawal", amount)
         else:
             messagebox.showerror("Error", "Insufficient balance!")
-            # self.write_transaction_to_file("Insuccificent amount", amount)
-
-    # def write_transaction_to_file(self, transaction_type, amount):
-    #     current_datetime = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    #     with open("TransactionLog.txt", "a") as file:
-    #         if transaction_type == "Insufficient funds":
-    #            file.write(f"{current_datetime} - {transaction_type.capitalize()}: ${amount}\n")
-
-    #         else:
-    #             file.write(f"{transaction_type.capitalize()}: ${amount}\n")
-
 
     def write_transaction_to_file(self, transaction_type, amount):
-        if transaction_type == "Deposit" or transaction_type == "Withdrawal":
-            current_datetime = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-            with open("TransactionLog.txt", "a") as file:
-                file.write(f"{current_datetime} - {transaction_type.capitalize()}: ${amount}\n")
-                
+        current_datetime = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        with open("TransactionLog.txt", "a") as file:
+            file.write(f"{current_datetime} - {transaction_type.capitalize()}: ${amount}\n")
 
     def view_transaction_history(self):
-            try:
-                with open("TransactionLog.txt", "r") as file:
-                    transaction_history = file.read()
-                messagebox.showinfo("Transaction History", transaction_history)
-            except FileNotFoundError:
-                messagebox.showerror("Error", "Transaction history file not found.")
+        try:
+            with open("TransactionLog.txt", "r") as file:
+                transaction_history = file.read()
+            messagebox.showinfo("Transaction History", transaction_history)
+        except FileNotFoundError:
+            messagebox.showerror("Error", "Transaction history file not found.")
 
 if __name__ == "__main__":
-    bank_app = BankApplication()
-    bank_app.mainloop()
+    root = tk.Tk()
+    login_form = Login(root)
+    root.mainloop()
