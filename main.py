@@ -225,14 +225,12 @@ class BankApplication(tk.Tk):
         self.balance += amount
         messagebox.showinfo("Success", f"Deposit successful! New Balance: ${self.balance}")
         self.label_balance.config(text=f"Current Balance: ${self.balance}")
-        self.write_transaction_to_file("Deposit", amount)
 
     def make_withdrawal(self, amount):
         if amount <= self.balance:
             self.balance -= amount
             messagebox.showinfo("Success", f"Withdrawal successful! New Balance: ${self.balance}")
             self.label_balance.config(text=f"Current Balance: ${self.balance}")
-            self.write_transaction_to_file("Withdrawal", amount)
         else:
             messagebox.showerror("Error", "Insufficient balance!")
 
